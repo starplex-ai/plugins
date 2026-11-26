@@ -2,12 +2,12 @@
   "name": "starplex-grok-bot",
   "displayName": "Starplex",
   "description": "Set up Starplex on a Grok Bot and work from Starplex items.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minClientVersions": { "cursor": "never" },
   "publisher": "Starplex",
   "homepage": "https://app.starplex.dev",
   "repository": "https://github.com/starplex-ai/plugins",
   "license": "MIT",
   "keywords": ["starplex", "project management", "agents"],
-  "skills": "skills/*/SKILL.md"
+  "skills": "./skills/"
 }
