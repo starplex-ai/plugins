@@ -43,19 +43,22 @@ the command finishes; don't repeat any output line that mentions a token.
 
 If you already have Starplex tools such as `list_projects`, go to step 4.
 
-Otherwise, if you can add a connector yourself, add a Command connector named
-`Starplex` with command `$HOME/.local/bin/starplex-bot` written as the full
-path (expand `$HOME`) and the single argument `mcp`. If you can't, give the
-person these steps:
+The tools come from a custom Command connector on this computer, not from
+a plugin in the catalog: the Starplex plugin holds only skills, so don't
+look for a connector there. Give the person the full path of
+`$HOME/.local/bin/starplex-bot` (expand `$HOME`) and these steps:
 
 1. In the Grok Bot desktop app, choose **Connect apps** (the grid icon with a
    plus sign near the bottom of the sidebar).
 2. Scroll to the bottom and choose **Add a custom connector**.
-3. Name `Starplex`, type Command, command the full path above, arguments
+3. Name `Starplex tools`, type Command, command the full path, arguments
    `mcp`, then **Add plugin**.
 
-It shows Starting, then Connected; this can take a few minutes. Don't add a
-connector that uses a `STARPLEX_TOKEN`.
+If you can add a connector yourself, do it with those values instead. It
+shows Starting, then Connected; this can take a few minutes, and the tools
+may only appear in a new chat. Don't add a connector that uses a
+`STARPLEX_TOKEN`. Tell the person that removing the Starplex plugin doesn't
+remove this connector, and removing this connector removes the tools.
 
 ## 4. Check
 
