@@ -1,12 +1,12 @@
 {
   "name": "starplex",
-  "owner": { "name": "Starplex" },
-  "metadata": { "description": "Starplex plugins for agent apps." },
+  "owner": { "name": "Starplex AI" },
+  "metadata": { "description": "Starplex AI plugins for agent apps." },
   "plugins": [
     {
       "name": "starplex-grok-bot",
       "source": "starplex-grok-bot",
-      "description": "Set up Starplex on a Grok Bot and work from Starplex items.",
+      "description": "Set up Starplex AI on a Grok Bot and work from its items.",
       "minClientVersions": { "cursor": "never" }
     }
   ]

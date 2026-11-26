@@ -1,6 +1,6 @@
-# Starplex plugins
+# Starplex AI plugins
 
-Plugins that give agent apps Starplex: a skill that points the agent at
+Plugins that give agent apps Starplex AI: a skill that points the agent at
 Starplex's current instructions, and a skill that installs and connects the
 Starplex CLI.
 
