@@ -1,6 +1,6 @@
 ---
 name: starplex
-description: Use for any Starplex work: reading or writing Starplex items, planning, building or reviewing a change, or when the person mentions Starplex, an item reference such as SP-123, or their project's tickets.
+description: "Use for any Starplex work: reading or writing Starplex items, planning, building or reviewing a change, or when the person mentions Starplex, an item reference such as SP-123, or their project's tickets."
 ---
 
 # Starplex
