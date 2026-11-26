@@ -20,14 +20,10 @@ Starplex's real instructions are. It holds no process rules of its own.
    connector uses rather than working without it.
 3. Follow that skill. Where it and this file differ, it wins.
 
-## Two rules that hold even before you have read it
+## Before you start work
 
-- Work starts from an item. If the person asks for a change with no item,
-  find the item it belongs to or ask before filing one. Don't start work
-  that no item records.
-- Don't write or build code on this computer. It isn't set up to build and
-  review code the way Starplex requires. Hand building to a route the person
-  has set up, such as their own server
-  (https://docs.starplex.dev/home-server), and tell them if none exists.
+Work starts from an item. If the person asks for a change with no item,
+find the item it belongs to or ask before filing one. Don't start work
+that no item records.
 
 Never print a token, a sign-in code's secret or any credential value.
