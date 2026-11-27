@@ -35,8 +35,16 @@ existing Starplex connector runs. Use the same command for every step.
   separately),
   `$HOME/.local/bin/starplex-bot`, `$HOME/.local/share/starplex`,
   `$HOME/.config/starplex`, `$HOME/.config/starplex-launcher`,
-  `$HOME/.local/state/starplex-launcher` and the folder's `.starplex`. Then
-  work through steps 1 to 5.
+  `$HOME/.local/state/starplex-launcher` and the folder's `.starplex`; you
+  move aside the skill copies step 0 found that Starplex didn't install (see
+  "Moving a skill copy aside"); and the person deletes the hand-made Starplex
+  skills step 0 found in the app. Then work through steps 1 to 5.
+  Afterwards, don't ask the person to revoke the old sign-in: deleting
+  `$HOME/.config/starplex` removed the bot's copy, and the old connection
+  ends by itself after 30 days unused. Say only this one line about it:
+  "Your old sign-in will expire by itself after 30 days unused. If you'd
+  like to remove it sooner, you can revoke it on
+  https://app.starplex.dev/connections (the older Starplex CLI row)."
 
 ## 0. Take stock
 
@@ -57,7 +65,33 @@ Change nothing in this step. Find and list for the person:
   'starplex.js mcp'`), with each one's PID, start time and working folder;
 - whether the connector's folder (usually `/workspace`) has
   `.starplex/project.json`, and the `release_number` in its
-  `.starplex/installed-packages.json`.
+  `.starplex/installed-packages.json`;
+- skill copies in that folder that Starplex didn't install, and skills the
+  installer skipped. Starplex installs each skill in `.agents/skills/` and
+  `.claude/skills/` as a link into `.starplex/package-store/current/skills/`.
+  When a folder or file with the same name is already there, the installer
+  leaves it alone, skips that skill and lists it under `"skipped"` in
+  `installed-packages.json`, so the bot keeps reading the old copy. Run this
+  in the connector's folder; it only reads:
+
+  ```sh
+  for b in .agents/skills .claude/skills; do
+    [ -d "$b" ] || continue
+    for d in "$b"/*; do
+      [ -e "$d" ] || [ -L "$d" ] || continue
+      case "$(readlink "$d" 2>/dev/null)" in
+        ../../.starplex/package-store/current/skills/*) ;;
+        *) echo "not installed by Starplex: $d" ;;
+      esac
+    done
+  done
+  grep '"skipped"' .starplex/installed-packages.json 2>/dev/null
+  ```
+
+  A copy whose name starts with `starplex`, or that appears in a
+  `"skipped"` list, is in the way. Any other copy is the person's own skill:
+  mention it and leave it alone. Every `"skipped"` line should read
+  `"skipped": []`.
 
 Then choose `<cli>`: the command a Starplex Command connector runs, if it
 prints a version (resolve a bare `starplex` with `command -v`); otherwise
@@ -70,15 +104,40 @@ Sort what you find into two groups:
 
 - **Working, keep:** `<cli>`, one Command connector that runs it with `mcp`
   whatever its name, and this plugin's skills.
-- **Broken or extra:** for example a hand-made Starplex skill, a second
-  Starplex connector, a connector that uses a token, a CLI command that
-  doesn't print a version, or `starplex.js mcp` processes started long
-  before the current connector. List each one, say what it is, and remove
-  nothing until the person says yes to that item.
+- **Broken or extra:** for example a hand-made Starplex skill in the app, a
+  skill copy in the folder that is in the way, a second Starplex connector,
+  a connector that uses a token, a CLI command that doesn't print a
+  version, or `starplex.js mcp` processes started long before the current
+  connector. List each one, say what it is, and remove nothing until the
+  person says yes to that item.
+
+Hand-made Starplex skills in the app must go: name each one and ask the
+person to delete it under **Connect apps**, because the bot can't tell
+which `starplex` skill to follow when two exist. If the app offers no way
+to delete one (a skill "From this Bot's template" may not), read its
+instructions: it does no harm if it only says to read and follow
+`/workspace/.agents/skills/starplex/SKILL.md`; otherwise tell the person
+setup can't finish while it remains, and stop.
 
 The person removes skills and connectors in the app under **Connect apps**.
 Removing a connector doesn't stop its `starplex.js mcp` processes, so stop
 those by PID once the person says yes.
+
+### Moving a skill copy aside
+
+For a copy in the folder that is in the way, ask the person, and after a
+yes move it to a dated backup folder outside the skills folders rather than
+deleting it, for example:
+
+```sh
+backup="$HOME/starplex-skill-backup-$(date +%Y%m%d)"
+mkdir -p "$backup/agents" "$backup/claude"
+mv /workspace/.agents/skills/<name> "$backup/agents/"
+```
+
+(use `"$backup/claude/"` for a copy in `.claude/skills`). Tell the person
+where it went. Then restart the connector as "Skills are out of date" says,
+so the installer puts Starplex's copy in its place.
 
 If `STARPLEX_TOKEN` is set, say so, but don't ask the person to revoke a
 token or delete the secret. A personal bot can't delete a saved secret, and
@@ -196,7 +255,11 @@ Setup is done only when all of these hold:
 - no "skills kept" or "Skill sync failed" line appeared after the
   connector's latest start;
 - you have told the person the project's name and connected repositories,
-  and the `release_number` in `/workspace/.starplex/installed-packages.json`.
+  and the `release_number` in `/workspace/.starplex/installed-packages.json`;
+- step 0's skill check, run again now, prints no copy in the way and every
+  `"skipped"` line reads `"skipped": []`;
+- no hand-made Starplex skill remains in the app, apart from one the app
+  won't delete that only points at the folder's `starplex` skill.
 
 If the tools can't read the project, run `<cli> auth-check`: if it
 says `not_signed_in`, repeat step 2; otherwise ask the person to check that
@@ -206,9 +269,12 @@ https://app.starplex.dev/connections covers that organization.
 
 The connector fetches skills only when it starts. On a bot set up without
 the folder link, or whose connector has been running since before a new
-release, the skills stay old.
+release, the skills stay old. A skill also stays old when a copy Starplex
+didn't install sits in its place: the installer skips it, with no warning
+line.
 
-1. Make sure the folder is linked (step 3).
+1. Make sure the folder is linked (step 3), and move aside any copy step 0's
+   skill check finds in the way (see "Moving a skill copy aside").
 2. Restart the connector by stopping its processes. Removing and re-adding
    the connector in Connect apps doesn't do this: the old process keeps
    running. List them with `ps -eo pid,lstart,args | grep 'starplex.js
@@ -225,5 +291,6 @@ After you stop the processes, Connect apps shows the connector as Error
 one. Then it shows Connected again. Tell the person this is expected.
 
 Leftover connector processes from a removed connector can still act with
-the saved sign-in. Revoking the sign-in on
-https://app.starplex.dev/connections cuts them off as well.
+the saved sign-in until they are stopped. Stopping them by PID is enough.
+Revoking that sign-in on https://app.starplex.dev/connections also cuts
+them off, but it is optional, and it signs out every process using it.
