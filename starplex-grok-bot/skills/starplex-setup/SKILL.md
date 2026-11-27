@@ -41,8 +41,10 @@ existing Starplex connector runs. Use the same command for every step.
   skills step 0 found in the app. Then work through steps 1 to 5.
   Afterwards, don't ask the person to revoke the old sign-in: deleting
   `$HOME/.config/starplex` removed the bot's copy, and the old connection
-  ends by itself after 30 days unused. Say at most: "Your old sign-in will
-  expire by itself; nothing to do."
+  ends by itself after 30 days unused. Say only this one line about it:
+  "Your old sign-in will expire by itself after 30 days unused. If you'd
+  like to remove it sooner, you can revoke it on
+  https://app.starplex.dev/connections (the older Starplex CLI row)."
 
 ## 0. Take stock
 
