@@ -23,7 +23,13 @@ settings file.
 - **Repair or fix:** run each check, then fix only what failed.
 - **Reinstall:** run the checks first and show what is already working. Start
   again from nothing only if the person still wants that after seeing the
-  report.
+  report. Starting again means, in this order and each only after a yes: the
+  person removes the `Starplex tools` connector in Connect apps; you stop its
+  `starplex.js mcp` processes by PID; you delete `$HOME/.local/bin/starplex`,
+  `$HOME/.local/bin/starplex-bot`, `$HOME/.local/share/starplex`,
+  `$HOME/.config/starplex`, `$HOME/.config/starplex-launcher`,
+  `$HOME/.local/state/starplex-launcher` and the folder's `.starplex`. Then
+  work through steps 1 to 5.
 
 ## 0. Take stock
 
@@ -71,10 +77,11 @@ does, go to step 2.
 Otherwise, show the person `scripts/install.sh` from this skill's folder,
 say in two lines what it does (installs Node 26 beside any existing Node,
 installs the Starplex CLI, and makes a `starplex-bot` command that runs it
-with Node 26), and wait for their OK. Then run it with `sh` and tell them the
+with Node 26), and wait for their OK. If they decline, stop. Then run it with `sh` and tell them the
 last line it prints. Ignore the installer's suggestion to run `starplex login`
 or `starplex setup-mcp`: the next steps replace them here. If it fails, give
-the person the exact output. Running it again is safe.
+the person the exact output, then stop; don't continue to step 2. Running it
+again is safe.
 
 To report which build is installed, read `commit` and `sequence` from the
 `build.json` in the CLI's current version folder. Don't use folder dates:
@@ -84,7 +91,10 @@ one.
 ## 2. Sign-in
 
 Check: `"$HOME/.local/bin/starplex-bot" auth-check` reports that you are
-signed in. If it does, go to step 3.
+signed in. If it does, go to step 3, unless `STARPLEX_TOKEN` is set: then
+run `login --device-code` even when auth-check passes, because without a
+saved sign-in the CLI falls back to the token, and revoking the token would
+break Starplex.
 
 Otherwise run `"$HOME/.local/bin/starplex-bot" login --device-code` and keep
 it running. Give the person the web address and code it prints straight
@@ -94,7 +104,8 @@ away, and tell them:
 - untick every organization this bot should not reach;
 - leave **Also let it change your account** unticked.
 
-A code lasts ten minutes. If it expires, run the command again. Report when
+A code lasts ten minutes. If it expires, run the command again. If the
+person declines, or login fails for another reason, report it and stop. Report when
 the command finishes; don't repeat any output line that mentions a token.
 
 ## 3. The folder link
@@ -103,6 +114,9 @@ The connector keeps Starplex's skill files up to date only in a folder
 linked to a project. A Grok Bot's folder, usually `/workspace`, isn't a git
 repository, so it needs linking here, before the connector is added, so the
 connector's first start finds it.
+
+Use the connector's folder from step 0 (usually `/workspace`); the commands
+below show `/workspace`.
 
 Check: `/workspace/.starplex/project.json` exists. If it does, go to step 4.
 
@@ -114,7 +128,9 @@ app.starplex.dev. Then run:
 "$HOME/.local/bin/starplex-bot" link-project --folder /workspace --for-project <organization>/<project>
 ```
 
-It should exit 0 and say the folder is set up for that project.
+It should exit 0 and say the folder is set up for that project. If not,
+quote the error, check the `<organization>/<project>` with the person, and
+stop.
 
 ## 4. The connector
 
@@ -135,7 +151,8 @@ for a connector there. Give the person the full path of
    `mcp`, then **Add plugin**.
 
 If you can add a connector yourself, do it with those values instead. It
-shows Starting, then Connected; this can take a few minutes. Don't add a
+shows Starting, then Connected; this can take a few minutes. If it isn't
+Connected after 10 minutes, report its status to the person and stop. Don't add a
 connector that uses a `STARPLEX_TOKEN`. Tell the person that removing the
 Starplex plugin doesn't remove this connector, and removing this connector
 removes the tools.
@@ -156,7 +173,8 @@ Setup is done only when all of these hold:
 - you have told the person the project's name and connected repositories,
   and the `release_number` in `/workspace/.starplex/installed-packages.json`.
 
-If the tools can't read the project, run `starplex-bot auth-check`: if it
+If the tools can't read the project, run
+`"$HOME/.local/bin/starplex-bot" auth-check`: if it
 says `not_signed_in`, repeat step 2; otherwise ask the person to check that
 https://app.starplex.dev/connections covers that organization.
 
@@ -170,10 +188,13 @@ release, the skills stay old.
 2. Restart the connector by stopping its processes. Removing and re-adding
    the connector in Connect apps doesn't do this: the old process keeps
    running. List them with `ps -eo pid,lstart,args | grep 'starplex.js
-   mcp'`, show the person, and stop only those PIDs. Don't stop anything
+   mcp'`, show the person, and stop only those PIDs, only after the person
+says yes. Don't stop anything
    by name or pattern.
 3. Make one Starplex call so Grok Bot starts a fresh connector, then run
-   step 5's check.
+   step 5's check. If no new `starplex.js mcp` process appears, report it to
+   the person and stop. If the warning appears again after one restart,
+   quote it and stop.
 
 Leftover connector processes from a removed connector can still act with
 the saved sign-in. Revoking the sign-in on
