@@ -60,13 +60,37 @@ may only appear in a new chat. Don't add a connector that uses a
 `STARPLEX_TOKEN`. Tell the person that removing the Starplex plugin doesn't
 remove this connector, and removing this connector removes the tools.
 
-## 4. Check
+## 4. Link the connector's folder to a project
 
-Using the Starplex tools, list the organizations you can reach and the
-projects in each. Ask the person which project to read, then tell them its
-name and connected repositories.
+The connector updates Starplex's skills only in a folder linked to a
+project. Find the folder the connector runs in (on a Grok Bot usually
+`/workspace`). If `.starplex/project.json` is missing there, ask the person
+which project this bot works on (list the projects the tools can reach if
+they're unsure), then run:
 
-Setup is done when you list only the organizations the person approved and
-can read the project they chose. If you can't, run `starplex-bot auth-check`:
-if it says `not_signed_in`, repeat step 2; otherwise ask the person to check
+```sh
+"$HOME/.local/bin/starplex-bot" link-project --folder /workspace --for-project <organization>/<project>
+```
+
+It should exit 0 and say the folder is set up for that project. The
+connector only notices on its next start: removing and re-adding it in
+Connect apps doesn't restart it. Stop its running processes by PID
+(`ps -eo pid,args | grep 'starplex.js mcp'`, only those) and make one
+Starplex call so Grok Bot starts a fresh one.
+
+## 5. Check
+
+Make one Starplex call, such as reading the linked project, and read the
+end of its result. A line starting "skills kept" or "Skill sync failed"
+means the skills did not update: quote it to the person and fix what it
+says before going on. Don't report the skills as current unless no such
+line appeared after the connector's latest start.
+
+Then tell the person the project's name and connected repositories, and
+the `release_number` in `/workspace/.starplex/installed-packages.json`.
+
+Setup is done when the tools reach only the organizations the person
+approved, read the linked project, and no skills warning appeared. If they
+can't, run `starplex-bot auth-check`: if it says `not_signed_in`, repeat
+step 2; otherwise ask the person to check
 https://app.starplex.dev/connections covers that organization.
