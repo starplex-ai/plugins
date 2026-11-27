@@ -12,6 +12,11 @@ in that folder up to date. This skill checks each piece and does only what
 is missing or broken. Never print a token or the contents of any Starplex
 settings file.
 
+The steps run the CLI as `<cli>`. That is the full path of the CLI command
+step 0 finds working on this computer: `$HOME/.local/bin/starplex-bot` when
+this plugin installed it, or an earlier working one, such as the command an
+existing Starplex connector runs. Use the same command for every step.
+
 ## What the person asked for
 
 - **Set up or connect:** work through every step below, doing only what each
@@ -24,8 +29,10 @@ settings file.
 - **Reinstall:** run the checks first and show what is already working. Start
   again from nothing only if the person still wants that after seeing the
   report. Starting again means, in this order and each only after a yes: the
-  person removes the `Starplex tools` connector in Connect apps; you stop its
-  `starplex.js mcp` processes by PID; you delete `$HOME/.local/bin/starplex`,
+  person removes the Starplex connector in Connect apps; you stop its
+  `starplex.js mcp` processes by PID; you delete `$HOME/.local/bin/starplex`
+  (if step 0 found it is the person's own wrapper, say so and ask about it
+  separately),
   `$HOME/.local/bin/starplex-bot`, `$HOME/.local/share/starplex`,
   `$HOME/.config/starplex`, `$HOME/.config/starplex-launcher`,
   `$HOME/.local/state/starplex-launcher` and the folder's `.starplex`. Then
@@ -42,23 +49,32 @@ Change nothing in this step. Find and list for the person:
 - whether `STARPLEX_TOKEN` is set as a secret or environment variable (yes
   or no, never its value);
 - every `starplex` or `starplex-bot` file in `$HOME/.local/bin` and on
-  `PATH`, and what `"$HOME/.local/bin/starplex-bot" --version` prints;
+  `PATH` (`command -v starplex starplex-bot`), what each prints for
+  `--version`, and whether `$HOME/.local/bin/starplex` is the standard
+  installer's file (it contains the line "This file stays as the install
+  wrote it") or someone's own wrapper;
 - running `starplex.js mcp` processes (`ps -eo pid,lstart,args | grep
   'starplex.js mcp'`), with each one's PID, start time and working folder;
 - whether the connector's folder (usually `/workspace`) has
   `.starplex/project.json`, and the `release_number` in its
   `.starplex/installed-packages.json`.
 
+Then choose `<cli>`: the command a Starplex Command connector runs, if it
+prints a version (resolve a bare `starplex` with `command -v`); otherwise
+`$HOME/.local/bin/starplex-bot`, if it prints a version; otherwise none yet,
+and step 1 installs it. A wrapper the person made, for example one that
+runs the CLI with its own Node 26, counts as working when it prints a
+version. Keep using it, and don't install a second CLI beside it.
+
 Sort what you find into two groups:
 
-- **This setup, working:** the CLI at `$HOME/.local/bin/starplex-bot`, one
-  Command connector named `Starplex tools` that runs it with `mcp`, and this
-  plugin's skills. Keep these.
-- **Broken or from somewhere else:** for example a hand-made Starplex skill,
-  a second Starplex connector, a connector that uses a token, another copy
-  of the CLI, or `starplex.js mcp` processes started long before the current
-  connector. List each one, say what it is, and remove nothing until the
-  person says yes to that item.
+- **Working, keep:** `<cli>`, one Command connector that runs it with `mcp`
+  whatever its name, and this plugin's skills.
+- **Broken or extra:** for example a hand-made Starplex skill, a second
+  Starplex connector, a connector that uses a token, a CLI command that
+  doesn't print a version, or `starplex.js mcp` processes started long
+  before the current connector. List each one, say what it is, and remove
+  nothing until the person says yes to that item.
 
 The person removes skills and connectors in the app under **Connect apps**.
 Removing a connector doesn't stop its `starplex.js mcp` processes, so stop
@@ -71,8 +87,8 @@ saved, so once step 2 has saved a sign-in it goes unused.
 
 ## 1. The CLI
 
-Check: `"$HOME/.local/bin/starplex-bot" --version` prints a version. If it
-does, go to step 2.
+Check: step 0 found a `<cli>` that prints a version. If it did, go to
+step 2. An update request never installs the CLI: the CLI updates itself.
 
 Otherwise, show the person `scripts/install.sh` from this skill's folder,
 say in two lines what it does (installs Node 26 beside any existing Node,
@@ -81,7 +97,10 @@ with Node 26), and wait for their OK. If they decline, stop. Then run it with `s
 last line it prints. Ignore the installer's suggestion to run `starplex login`
 or `starplex setup-mcp`: the next steps replace them here. If it fails, give
 the person the exact output, then stop; don't continue to step 2. Running it
-again is safe.
+again is safe. It stops without changing anything if
+`$HOME/.local/bin/starplex` exists and the Starplex installer didn't write
+it: tell the person, and don't move or delete that file without their yes.
+Once it succeeds, `<cli>` is `$HOME/.local/bin/starplex-bot`.
 
 To report which build is installed, read `commit` and `sequence` from the
 `build.json` in the CLI's current version folder. Don't use folder dates:
@@ -90,13 +109,13 @@ one.
 
 ## 2. Sign-in
 
-Check: `"$HOME/.local/bin/starplex-bot" auth-check` reports that you are
+Check: `<cli> auth-check` reports that you are
 signed in. If it does, go to step 3, unless `STARPLEX_TOKEN` is set: then
 run `login --device-code` even when auth-check passes, because without a
 saved sign-in the CLI falls back to the token, and revoking the token would
 break Starplex.
 
-Otherwise run `"$HOME/.local/bin/starplex-bot" login --device-code` and keep
+Otherwise run `<cli> login --device-code` and keep
 it running. Give the person the web address and code it prints straight
 away, and tell them:
 
@@ -125,7 +144,7 @@ Otherwise ask the person which project this bot works on, as
 app.starplex.dev. Then run:
 
 ```sh
-"$HOME/.local/bin/starplex-bot" link-project --folder /workspace --for-project <organization>/<project>
+<cli> link-project --folder /workspace --for-project <organization>/<project>
 ```
 
 It should exit 0 and say the folder is set up for that project. If not,
@@ -137,12 +156,14 @@ stop.
 Check: you have Starplex tools such as `list_projects`. If you do, and you
 linked the folder in step 3 just now, the connector started before the link
 existed: follow "Skills are out of date" below, then go to step 5. If you
-have them and the folder was already linked, go to step 5.
+have them and the folder was already linked, go to step 5. Keep the
+connector that gives you the tools, whatever it is named; never add a
+second one beside it.
 
 The tools come from a custom Command connector on this computer, not from a
 plugin in the catalog: the Starplex plugin holds only skills, so don't look
-for a connector there. Give the person the full path of
-`$HOME/.local/bin/starplex-bot` (expand `$HOME`) and these steps:
+for a connector there. Give the person the full path of `<cli>` (expand
+`$HOME`) and these steps:
 
 1. In the Grok Bot desktop app, choose **Connect apps** (the grid icon with a
    plus sign near the bottom of the sidebar).
@@ -177,8 +198,7 @@ Setup is done only when all of these hold:
 - you have told the person the project's name and connected repositories,
   and the `release_number` in `/workspace/.starplex/installed-packages.json`.
 
-If the tools can't read the project, run
-`"$HOME/.local/bin/starplex-bot" auth-check`: if it
+If the tools can't read the project, run `<cli> auth-check`: if it
 says `not_signed_in`, repeat step 2; otherwise ask the person to check that
 https://app.starplex.dev/connections covers that organization.
 
@@ -200,7 +220,7 @@ says yes. Don't stop anything
    the person and stop. If the warning appears again after one restart,
    quote it and stop.
 
-After you stop the processes, Connect apps shows Starplex tools as Error
+After you stop the processes, Connect apps shows the connector as Error
 ("MCP server exited", 0 tools) until the next Starplex call starts a new
 one. Then it shows Connected again. Tell the person this is expected.
 

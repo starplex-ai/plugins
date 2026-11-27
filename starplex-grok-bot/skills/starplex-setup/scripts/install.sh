@@ -2,6 +2,13 @@
 # Installs Node 26 beside any existing Node, the Starplex CLI, and a
 # starplex-bot command that runs the CLI with Node 26. Safe to run again.
 set -eu
+# Never replace a starplex command that someone else wrote, such as a
+# wrapper that runs the CLI with its own Node: their connector may run it.
+entry="$HOME/.local/bin/starplex"
+if [ -e "$entry" ] && ! grep -q "This file stays as the install wrote it" "$entry"; then
+  echo "$entry exists and wasn't written by the Starplex installer, so this script stopped without changing anything." >&2
+  exit 3
+fi
 case "$(uname -m)" in
   x86_64) arch=x64 ;;
   aarch64) arch=arm64 ;;
