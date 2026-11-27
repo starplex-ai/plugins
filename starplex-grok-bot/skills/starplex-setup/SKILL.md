@@ -28,9 +28,10 @@ Change nothing in this step. Look for, and list for the person:
   `.starplex/installed-packages.json`.
 
 Say what each item is and what this setup replaces it with. Remove nothing
-until the person says yes, item by item. The person removes skills,
-connectors and secrets in the app; https://docs.starplex.dev/grok-bot#remove-starplex-from-a-grok-bot
-gives the steps. Keep exactly one Starplex Command connector. A
+until the person says yes, item by item. The person removes skills and
+connectors in the app under **Connect apps**, and secrets under the bot's
+**Secrets**. Before removing a connector, stop its `starplex ... mcp`
+processes by PID once they say yes: removing a connector doesn't stop them. Keep exactly one Starplex Command connector. A
 `STARPLEX_TOKEN` must go, because the CLI would use it instead of the
 person's own sign-in.
 
