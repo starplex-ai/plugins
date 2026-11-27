@@ -64,10 +64,10 @@ The person removes skills and connectors in the app under **Connect apps**.
 Removing a connector doesn't stop its `starplex.js mcp` processes, so stop
 those by PID once the person says yes.
 
-If `STARPLEX_TOKEN` is set, tell the person to revoke that token on
-https://app.starplex.dev/connections. A personal bot can't delete a saved
-secret, and the CLI uses the token only when no sign-in is saved, so once
-step 2 is done and the token is revoked it can do nothing.
+If `STARPLEX_TOKEN` is set, say so, but don't ask the person to revoke a
+token or delete the secret. A personal bot can't delete a saved secret, and
+you can't tell which token it holds. The CLI uses it only when no sign-in is
+saved, so once step 2 has saved a sign-in it goes unused.
 
 ## 1. The CLI
 
@@ -151,8 +151,12 @@ for a connector there. Give the person the full path of
    `mcp`, then **Add plugin**.
 
 If you can add a connector yourself, do it with those values instead. It
-shows Starting, then Connected; this can take a few minutes. If it isn't
-Connected after 10 minutes, report its status to the person and stop. Don't add a
+shows Starting, then Connected; this can take a few minutes. It may show
+Error ("Failed to load connector. Details: MCP server exited") straight
+after it is added and then change to Connected by itself within a minute.
+If it still shows Error after a minute, make one Starplex call; if that call
+fails, quote the error to the person and stop. If it isn't Connected after
+10 minutes, report its status to the person and stop. Don't add a
 connector that uses a `STARPLEX_TOKEN`. Tell the person that removing the
 Starplex plugin doesn't remove this connector, and removing this connector
 removes the tools.
@@ -195,6 +199,10 @@ says yes. Don't stop anything
    step 5's check. If no new `starplex.js mcp` process appears, report it to
    the person and stop. If the warning appears again after one restart,
    quote it and stop.
+
+After you stop the processes, Connect apps shows Starplex tools as Error
+("MCP server exited", 0 tools) until the next Starplex call starts a new
+one. Then it shows Connected again. Tell the person this is expected.
 
 Leftover connector processes from a removed connector can still act with
 the saved sign-in. Revoking the sign-in on
