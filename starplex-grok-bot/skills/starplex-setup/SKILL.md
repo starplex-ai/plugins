@@ -1,58 +1,90 @@
 ---
 name: starplex-setup
-description: Use when the person asks to set up, connect, repair or check Starplex on this Grok Bot, or when the starplex skill finds the Starplex tools missing.
+description: "Use when the person asks to set up, connect, update, repair, fix, reinstall or check Starplex on this Grok Bot, or when the starplex skill finds the Starplex tools missing."
 ---
 
-# Set up Starplex on this Grok Bot
+# Set up, check or repair Starplex on this Grok Bot
 
-This installs the Starplex CLI on this computer, signs it in with a code the
-person approves, and connects the Starplex tools. Every step is safe to run
-again. Never print a token or the contents of any Starplex settings file.
+Starplex on this bot has four pieces: the Starplex CLI on this computer, its
+sign-in, the bot's working folder linked to a Starplex project, and a
+connector that gives the bot Starplex tools and keeps Starplex's skill files
+in that folder up to date. This skill checks each piece and does only what
+is missing or broken. Never print a token or the contents of any Starplex
+settings file.
 
-## 0. Take stock of any earlier Starplex setup
+## What the person asked for
 
-Change nothing in this step. Look for, and list for the person:
+- **Set up or connect:** work through every step below, doing only what each
+  check finds missing.
+- **Update or check:** run each step's check and report what is current and
+  what is behind. Change nothing. Offer each fix and wait for a yes. The CLI
+  updates itself, and the connector fetches new skills when it starts, so an
+  update request is usually a report that everything is current.
+- **Repair or fix:** run each check, then fix only what failed.
+- **Reinstall:** run the checks first and show what is already working. Start
+  again from nothing only if the person still wants that after seeing the
+  report.
+
+## 0. Take stock
+
+Change nothing in this step. Find and list for the person:
 
 - skills in the app whose name or description mentions Starplex, other than
   this plugin's (`starplex`, `starplex-setup`, `starplex-documentation`,
   `starplex-harnesses`, `starplex-incident`, `starplex-rca`);
 - connectors mentioning Starplex, with each one's command or address;
-- whether a `STARPLEX_TOKEN` secret or environment variable is set (yes or
-  no, never its value);
+- whether `STARPLEX_TOKEN` is set as a secret or environment variable (yes
+  or no, never its value);
 - every `starplex` or `starplex-bot` file in `$HOME/.local/bin` and on
-  `PATH`, and what `starplex-bot --version` prints;
-- running `starplex ... mcp` processes, with their PID, start time and
-  working folder;
+  `PATH`, and what `"$HOME/.local/bin/starplex-bot" --version` prints;
+- running `starplex.js mcp` processes (`ps -eo pid,lstart,args | grep
+  'starplex.js mcp'`), with each one's PID, start time and working folder;
 - whether the connector's folder (usually `/workspace`) has
   `.starplex/project.json`, and the `release_number` in its
   `.starplex/installed-packages.json`.
 
-Say what each item is and what this setup replaces it with. Remove nothing
-until the person says yes, item by item. The person removes skills and
-connectors in the app under **Connect apps**, and secrets under the bot's
-**Secrets**. Before removing a connector, stop its `starplex ... mcp`
-processes by PID once they say yes: removing a connector doesn't stop them. Keep exactly one Starplex Command connector. A
-`STARPLEX_TOKEN` must go, because the CLI would use it instead of the
-person's own sign-in.
+Sort what you find into two groups:
 
-## 1. Install the CLI if it is missing
+- **This setup, working:** the CLI at `$HOME/.local/bin/starplex-bot`, one
+  Command connector named `Starplex tools` that runs it with `mcp`, and this
+  plugin's skills. Keep these.
+- **Broken or from somewhere else:** for example a hand-made Starplex skill,
+  a second Starplex connector, a connector that uses a token, another copy
+  of the CLI, or `starplex.js mcp` processes started long before the current
+  connector. List each one, say what it is, and remove nothing until the
+  person says yes to that item.
 
-Run `"$HOME/.local/bin/starplex-bot" --version`. If it prints a version, go
-to step 2.
+The person removes skills and connectors in the app under **Connect apps**.
+Removing a connector doesn't stop its `starplex.js mcp` processes, so stop
+those by PID once the person says yes.
+
+If `STARPLEX_TOKEN` is set, tell the person to revoke that token on
+https://app.starplex.dev/connections. A personal bot can't delete a saved
+secret, and the CLI uses the token only when no sign-in is saved, so once
+step 2 is done and the token is revoked it can do nothing.
+
+## 1. The CLI
+
+Check: `"$HOME/.local/bin/starplex-bot" --version` prints a version. If it
+does, go to step 2.
 
 Otherwise, show the person `scripts/install.sh` from this skill's folder,
 say in two lines what it does (installs Node 26 beside any existing Node,
 installs the Starplex CLI, and makes a `starplex-bot` command that runs it
 with Node 26), and wait for their OK. Then run it with `sh` and tell them the
 last line it prints. Ignore the installer's suggestion to run `starplex login`
-or `starplex setup-mcp`: the next steps replace them here.
+or `starplex setup-mcp`: the next steps replace them here. If it fails, give
+the person the exact output. Running it again is safe.
 
-If it fails, give the person the exact output. Running it again is safe.
+To report which build is installed, read `commit` and `sequence` from the
+`build.json` in the CLI's current version folder. Don't use folder dates:
+they change when the CLI retires an old build, not only when it downloads
+one.
 
-## 2. Sign in with a code
+## 2. Sign-in
 
-Run `"$HOME/.local/bin/starplex-bot" auth-check`. If it reports that you are
-signed in, go to step 3.
+Check: `"$HOME/.local/bin/starplex-bot" auth-check` reports that you are
+signed in. If it does, go to step 3.
 
 Otherwise run `"$HOME/.local/bin/starplex-bot" login --device-code` and keep
 it running. Give the person the web address and code it prints straight
@@ -65,13 +97,35 @@ away, and tell them:
 A code lasts ten minutes. If it expires, run the command again. Report when
 the command finishes; don't repeat any output line that mentions a token.
 
-## 3. Connect the Starplex tools
+## 3. The folder link
 
-If you already have Starplex tools such as `list_projects`, go to step 4.
+The connector keeps Starplex's skill files up to date only in a folder
+linked to a project. A Grok Bot's folder, usually `/workspace`, isn't a git
+repository, so it needs linking here, before the connector is added, so the
+connector's first start finds it.
 
-The tools come from a custom Command connector on this computer, not from
-a plugin in the catalog: the Starplex plugin holds only skills, so don't
-look for a connector there. Give the person the full path of
+Check: `/workspace/.starplex/project.json` exists. If it does, go to step 4.
+
+Otherwise ask the person which project this bot works on, as
+`<organization>/<project>`: both are in the project's web address on
+app.starplex.dev. Then run:
+
+```sh
+"$HOME/.local/bin/starplex-bot" link-project --folder /workspace --for-project <organization>/<project>
+```
+
+It should exit 0 and say the folder is set up for that project.
+
+## 4. The connector
+
+Check: you have Starplex tools such as `list_projects`. If you do, and you
+linked the folder in step 3 just now, the connector started before the link
+existed: follow "Skills are out of date" below, then go to step 5. If you
+have them and the folder was already linked, go to step 5.
+
+The tools come from a custom Command connector on this computer, not from a
+plugin in the catalog: the Starplex plugin holds only skills, so don't look
+for a connector there. Give the person the full path of
 `$HOME/.local/bin/starplex-bot` (expand `$HOME`) and these steps:
 
 1. In the Grok Bot desktop app, choose **Connect apps** (the grid icon with a
@@ -81,42 +135,46 @@ look for a connector there. Give the person the full path of
    `mcp`, then **Add plugin**.
 
 If you can add a connector yourself, do it with those values instead. It
-shows Starting, then Connected; this can take a few minutes, and the tools
-may only appear in a new chat. Don't add a connector that uses a
-`STARPLEX_TOKEN`. Tell the person that removing the Starplex plugin doesn't
-remove this connector, and removing this connector removes the tools.
-
-## 4. Link the connector's folder to a project
-
-The connector updates Starplex's skills only in a folder linked to a
-project. Find the folder the connector runs in (on a Grok Bot usually
-`/workspace`). If `.starplex/project.json` is missing there, ask the person
-which project this bot works on (list the projects the tools can reach if
-they're unsure), then run:
-
-```sh
-"$HOME/.local/bin/starplex-bot" link-project --folder /workspace --for-project <organization>/<project>
-```
-
-It should exit 0 and say the folder is set up for that project. The
-connector only notices on its next start: removing and re-adding it in
-Connect apps doesn't restart it. Stop its running processes by PID
-(`ps -eo pid,args | grep 'starplex.js mcp'`, only those) and make one
-Starplex call so Grok Bot starts a fresh one.
+shows Starting, then Connected; this can take a few minutes. Don't add a
+connector that uses a `STARPLEX_TOKEN`. Tell the person that removing the
+Starplex plugin doesn't remove this connector, and removing this connector
+removes the tools.
 
 ## 5. Check
 
-Make one Starplex call, such as reading the linked project, and read the
-end of its result. A line starting "skills kept" or "Skill sync failed"
-means the skills did not update: quote it to the person and fix what it
-says before going on. Don't report the skills as current unless no such
-line appeared after the connector's latest start.
+Make one Starplex call, such as reading the linked project, and read the end
+of its result. A line starting "skills kept" or "Skill sync failed" means
+the skills did not update: quote it to the person and follow "Skills are
+out of date" below.
 
-Then tell the person the project's name and connected repositories, and
-the `release_number` in `/workspace/.starplex/installed-packages.json`.
+Setup is done only when all of these hold:
 
-Setup is done when the tools reach only the organizations the person
-approved, read the linked project, and no skills warning appeared. If they
-can't, run `starplex-bot auth-check`: if it says `not_signed_in`, repeat
-step 2; otherwise ask the person to check
+- the tools reach only the organizations the person approved and read the
+  linked project;
+- no "skills kept" or "Skill sync failed" line appeared after the
+  connector's latest start;
+- you have told the person the project's name and connected repositories,
+  and the `release_number` in `/workspace/.starplex/installed-packages.json`.
+
+If the tools can't read the project, run `starplex-bot auth-check`: if it
+says `not_signed_in`, repeat step 2; otherwise ask the person to check that
 https://app.starplex.dev/connections covers that organization.
+
+## Skills are out of date
+
+The connector fetches skills only when it starts. On a bot set up without
+the folder link, or whose connector has been running since before a new
+release, the skills stay old.
+
+1. Make sure the folder is linked (step 3).
+2. Restart the connector by stopping its processes. Removing and re-adding
+   the connector in Connect apps doesn't do this: the old process keeps
+   running. List them with `ps -eo pid,lstart,args | grep 'starplex.js
+   mcp'`, show the person, and stop only those PIDs. Don't stop anything
+   by name or pattern.
+3. Make one Starplex call so Grok Bot starts a fresh connector, then run
+   step 5's check.
+
+Leftover connector processes from a removed connector can still act with
+the saved sign-in. Revoking the sign-in on
+https://app.starplex.dev/connections cuts them off as well.
