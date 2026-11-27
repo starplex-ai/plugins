@@ -2,7 +2,7 @@
   "name": "starplex-grok-bot",
   "displayName": "Starplex AI",
   "description": "Set up Starplex AI on a Grok Bot and work from its items.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "minClientVersions": { "cursor": "never" },
   "publisher": "Starplex AI",
   "homepage": "https://app.starplex.dev",

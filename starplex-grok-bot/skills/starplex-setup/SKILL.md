@@ -9,6 +9,31 @@ This installs the Starplex CLI on this computer, signs it in with a code the
 person approves, and connects the Starplex tools. Every step is safe to run
 again. Never print a token or the contents of any Starplex settings file.
 
+## 0. Take stock of any earlier Starplex setup
+
+Change nothing in this step. Look for, and list for the person:
+
+- skills in the app whose name or description mentions Starplex, other than
+  this plugin's (`starplex`, `starplex-setup`, `starplex-documentation`,
+  `starplex-harnesses`, `starplex-incident`, `starplex-rca`);
+- connectors mentioning Starplex, with each one's command or address;
+- whether a `STARPLEX_TOKEN` secret or environment variable is set (yes or
+  no, never its value);
+- every `starplex` or `starplex-bot` file in `$HOME/.local/bin` and on
+  `PATH`, and what `starplex-bot --version` prints;
+- running `starplex ... mcp` processes, with their PID, start time and
+  working folder;
+- whether the connector's folder (usually `/workspace`) has
+  `.starplex/project.json`, and the `release_number` in its
+  `.starplex/installed-packages.json`.
+
+Say what each item is and what this setup replaces it with. Remove nothing
+until the person says yes, item by item. The person removes skills,
+connectors and secrets in the app; https://docs.starplex.dev/grok-bot#remove-starplex-from-a-grok-bot
+gives the steps. Keep exactly one Starplex Command connector. A
+`STARPLEX_TOKEN` must go, because the CLI would use it instead of the
+person's own sign-in.
+
 ## 1. Install the CLI if it is missing
 
 Run `"$HOME/.local/bin/starplex-bot" --version`. If it prints a version, go
